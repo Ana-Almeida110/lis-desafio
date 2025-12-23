@@ -7,17 +7,15 @@ import authRoutes from "./routes/auth.routes"
 import leadRoutes from "./routes/leads.routes"
 import userRoutes from "./routes/user"
 
-
 dotenv.config();
 const app = express();
 app.use(cors());
 
 app.use(cors({
-  origin: "http://localhost:4200", // endereço do frontend Angular
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-
 
 app.use(express.json());
 
@@ -34,6 +32,8 @@ AppDataSource.initialize().then(() => {
   app.listen(3000, () => console.log("Servidor rodando na porta 3000"));
 });
 
-app.use(authRoutes);
-app.use(leadRoutes);
+app.use("/auth", authRoutes);
+app.use("/leads", leadRoutes);
+app.use(userRoutes);
+app.use(express.json());
 

@@ -1,16 +1,17 @@
 import { Router } from "express";
 import { AppDataSource } from "../index";
 import { Lead } from "../entities/Lead";
+import { authenticateToken, allowRoles } from "./auth.middleware";
+import { UserRole } from "../entities/User";
 
 const router = Router();
 
 router.post(
     "/leads",
-    //allowRoles([UserRole.ADMIN, UserRole.COLABORADOR]),
-    async (req, res) => {
-
+    authenticateToken,
+    allowRoles([UserRole.ADMIN, UserRole.COLABORADOR]),
+    async (req: any, res) => {
         const leadRepository = AppDataSource.getRepository(Lead);
-
         const { name_lead, registration_number, earnings, loan_value } = req.body;
 
         if (!name_lead || !registration_number || !earnings || !loan_value) {
@@ -31,7 +32,7 @@ router.post(
     }
 );
 
-router.get("/leads", async (_req, res) => {
+router.get("/leads", authenticateToken, async (_req, res) => {
     const leadRepository = AppDataSource.getRepository(Lead);
     const leads = await leadRepository.find();
     return res.json(leads);
@@ -39,7 +40,8 @@ router.get("/leads", async (_req, res) => {
 
 router.put(
     "/leads/:id/aprovar",
-    //allowRoles([UserRole.ADMIN, UserRole.APROVADOR]),
+    authenticateToken,
+    allowRoles([UserRole.ADMIN, UserRole.APROVADOR]),
     async (req, res) => {
 
         const leadRepository = AppDataSource.getRepository(Lead);
@@ -49,10 +51,9 @@ router.put(
             where: { id_lead: Number(id) }
         });  
 
-        if (
-            !lead) {
-                return res.status(404).json({ message: "Lead não encontrado" });
-            }
+        if (!lead) {
+            return res.status(404).json({ message: "Lead não encontrado" });
+        }
             
         lead.loan_approved = true;
         await leadRepository.save(lead);
